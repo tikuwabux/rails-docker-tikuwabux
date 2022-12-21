@@ -54,6 +54,16 @@ test:
 #
 production:
   <<: *default
-  database: app_production
-  username: app
+  # database: app_production
+  # username: app
+  # password: <%= ENV['APP_DATABASE_PASSWORD'] %>
+
+  #以下のように書き換え=>
+
+  # 本番環境(Heroku)のDBの接続先情報を環境変数という形で設定
+  database: <%= ENV['APP_DATABASE'] %>
+  username: <%= ENV['APP_DATABASE_USERNAME'] %>
   password: <%= ENV['APP_DATABASE_PASSWORD'] %>
+  host: <%= ENV['APP_DATABASE_HOST'] %>
+
+  # あとはherokuで動かすときに､これらの環境変数に値を渡してあげれば､DBに接続できる
