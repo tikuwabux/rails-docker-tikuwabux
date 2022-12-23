@@ -68,7 +68,7 @@ jobs:
 
       # m1マック(CPUアーキテクチャがarm64)用に上のコマンド1つを､下3つのコマンドに書き換え
       #=>
-      
+
       # arm64でx86用のdockerイメージをbuild
       - run:
           name: build docker image for x86 by arm64
@@ -103,7 +103,7 @@ workflows:
             - build # buildの後に行う
       - deploy: # デブロイを行う
           requires: # デブロイは
-            - test  # テストの後に行う
-            filters:     # デブロイはmainブランチに変更があった時のみ､
-              branches:  # つまりmainブランチ←開発用ブランチのマージが実行された時のみ､実行する
-                only: main
+            - test # テストの後に行う
+          filters: # デブロイはmainブランチに変更があった時のみ､
+            branches: # つまりmainブランチ←開発用ブランチのマージが実行された時のみ､実行する
+              only: main
