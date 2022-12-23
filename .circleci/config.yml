@@ -1,0 +1,55 @@
+version: 2.1
+# orbs はいろんな人がjobを事前に定義しておいて､それがシェアできる仕組み
+orbs:
+  #今後のjopを定義するときに､便利な記法が使用可能に
+  ruby: circleci/ruby@1.1.2
+
+jobs:
+  # buildというjopを定義
+  build:
+    docker:
+      - image: circleci/ruby:2.7
+    # ~/githubのリポジトリ名/src
+    working_directory: ~/rails-docker-tikuwabux/src
+    steps:
+      # gitリポジトリからソースコードをチェックアウト
+      - checkout:
+          path: ~/rails-docker-tikuwabux
+      # bundle installしてくれる(orbsを利用した記法)
+      - ruby/install-deps
+
+  # testというjobを定義
+  test:
+    docker:
+      - image: circleci/ruby:2.7
+      - image: circleci/mysql:5.5
+        # 以下3つの環境変数の値は src/config/database.yml のtest部分に合わせる
+        environment:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: app_test
+          MYSQL_USER: root
+    environment:
+      BUNDLE_JOBS: "3"
+      BUNDLE_RETRY: "3"
+      APP_DATABASE_HOST: "127.0.0.1"
+      RAILS_ENV: test
+    working_directory: ~/rails-docker-tikuwabux/src
+    steps:
+      - checkout:
+          path: ~/rails-docker-tikuwabux
+      - ruby/install-deps
+      - run:
+          name: Database setup
+          command: bundle exec rails db:migrate
+      - run:
+          name: test
+          command: bundle exec rake test
+# 定義したjopたちを､どうゆう順番で行うかを設定
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build #まずbuildを行って
+      - test: #その後､テストを行う
+          requires:
+            - build

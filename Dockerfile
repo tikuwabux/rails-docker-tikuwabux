@@ -1,5 +1,9 @@
 # ベースのイメージをruby2.7に指定
-FROM ruby:2.7
+# FROM ruby:2.7
+#=> docker-compose exec web bundle exec rake test 実行時のYour Ruby version is 2.7.7, but your Gemfile specified 2.7.5解消のため書き換え
+# 解決案①
+FROM ruby:2.7.5
+# => エラー解決!
 
 # production時用の処理を追加1
 # 環境変数 RAILS_ENV を定義し､それにproductionという値を格納
