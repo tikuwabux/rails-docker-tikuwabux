@@ -62,26 +62,27 @@ jobs:
           name: heroku login
           command: heroku container:login
       # dockerイメージをbuildしてHerokuにpush
-      # - run:
-      #     name: push docker image
-      #     command: heroku container:push web -a $HEROKU_APP_NAME
+      - run:
+          name: push docker image
+          command: heroku container:push web -a $HEROKU_APP_NAME
 
       # m1マック(CPUアーキテクチャがarm64)用に上のコマンド1つを､下3つのコマンドに書き換え
       #=>
 
       # arm64でx86用のdockerイメージをbuild
-      - run:
-          name: build docker image for x86 by arm64
-          command: docker buildx build . --platform linux/amd64 -t tikuwabux/rails-docker-tikuwabux:latest
-      # 正直よくわかってない｡タグ付けしてる? 前うまくいったときはこれもセットだったから入れてる
-      - run:
-          name: docker tag
-          command: docker tag tikuwabux/rails-docker-tikuwabux registry.heroku.com/rails-docker-tikuwabux/web
-      # buildしたdockerイメージをHerokuにpush
-      - run:
-          name: push docker image
-          command: docker push registry.heroku.com/rails-docker-tikuwabux/web
+      # - run:
+      #     name: build docker image for x86 by arm64
+      #     command: docker buildx build . --platform linux/amd64 -t tikuwabux/rails-docker-tikuwabux:latest
+      # # 正直よくわかってない｡タグ付けしてる? 前うまくいったときはこれもセットだったから入れてる
+      # - run:
+      #     name: docker tag
+      #     command: docker tag tikuwabux/rails-docker-tikuwabux registry.heroku.com/rails-docker-tikuwabux/web
+      # # buildしたdockerイメージをHerokuにpush
+      # - run:
+      #     name: push docker image
+      #     command: docker push registry.heroku.com/rails-docker-tikuwabux/web
       # 書き換え終了
+      # CD実行時に､unknown flag: --platform となりエラーに buildがエラーになるので､消してみる
 
       - run:
           name: release docker image
