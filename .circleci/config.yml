@@ -61,7 +61,7 @@ jobs:
       - run:
           name: heroku login
           command: heroku container:login
-      dockerイメージをbuildしてHerokuにpush
+      # dockerイメージをbuildしてHerokuにpush
       - run:
           name: push docker image
           command: heroku container:push web -a $HEROKU_APP_NAME
