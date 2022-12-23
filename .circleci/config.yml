@@ -1,8 +1,10 @@
 version: 2.1
 # orbs はいろんな人がjobを事前に定義しておいて､それがシェアできる仕組み
 orbs:
-  #今後のjopを定義するときに､便利な記法が使用可能に
+  #今後のjopを定義するときに､ruby関連のコード記述において､便利な記法が使用可能に
   ruby: circleci/ruby@1.1.2
+  #今後のjopを定義するときの､heroku関連のコード記述において､便利な記法が使用可能に
+  heroku: circleci/heroku@1.2.3
 
 jobs:
   # buildというjopを定義
@@ -44,12 +46,64 @@ jobs:
       - run:
           name: test
           command: bundle exec rake test
+
+  # deployというjopを追加
+  deploy:
+    docker:
+      - image: circleci/ruby:2.7
+    steps:
+      - checkout
+      # 以下の2行でdockerコマンドが使用可能に
+      - setup_remote_docker:
+          version: 19.03.13
+      # herokuコマンドをインストールしてくれる(orbsを利用した記法)
+      - heroku/install
+      - run:
+          name: heroku login
+          command: heroku container:login
+      # dockerイメージをbuildしてHerokuにpush
+      # - run:
+      #     name: push docker image
+      #     command: heroku container:push web -a $HEROKU_APP_NAME
+
+      # m1マック(CPUアーキテクチャがarm64)用に上のコマンド1つを､下3つのコマンドに書き換え
+      #=>
+
+      # arm64でx86用のdockerイメージをbuild
+      - run:
+          name: build docker image for x86 by arm64
+          command: docker buildx build . --platform linux/amd64 -t tikuwabux/rails-docker-tikuwabux:latest
+      # 正直よくわかってない｡タグ付けしてる? 前うまくいったときはこれもセットだったから入れてる
+      - run:
+          name: docker tag
+          command: docker tag tikuwabux/rails-docker-tikuwabux registry.heroku.com/rails-docker-tikuwabux/web
+      # buildしたdockerイメージをHerokuにpush
+      - run:
+          name: push docker image
+          command: docker push registry.heroku.com/rails-docker-tikuwabux/web
+      # 書き換え終了
+
+      - run:
+          name: release docker image
+          command: heroku container:release web -a $HEROKU_APP_NAME
+      - run:
+          name: database setup
+          command: heroku run bundle exec rake db:migrate RAILS_ENV=production -a $HEROKU_APP_NAME
+
+
+
 # 定義したjopたちを､どうゆう順番で行うかを設定
 workflows:
   version: 2
-  build_and_test:
+  build_test_and_deploy:
     jobs:
-      - build #まずbuildを行って
-      - test: #その後､テストを行う
-          requires:
-            - build
+      - build # buildを行う
+      - test: # テストを行う
+          requires: # テストは
+            - build # buildの後に行う
+      - deploy: # デブロイを行う
+          requires: # デブロイは
+            - test # テストの後に行う
+          filters: # デブロイはmainブランチに変更があった時のみ､
+            branches: # つまりmainブランチ←開発用ブランチのマージが実行された時のみ､実行する
+              only: main
