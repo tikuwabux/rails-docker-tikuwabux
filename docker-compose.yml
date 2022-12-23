@@ -18,6 +18,11 @@ services:
       - ./src:/app
     ports:
       - "3000:3000"
+
+    # ローカル起動時はRAILS_ENVがdevelopmentになるよう設定
+    environment:
+      RAILS_ENV: development
+
     # webサービスはdbサービスに依存
     depends_on:
       - db
